@@ -10,7 +10,7 @@ import {
   Check,
   Minus,
   Plus,
-} from "lucide-react";
+} from "./Icons";
 
 /* ─── Dropdown wrapper ─── */
 function Dropdown({

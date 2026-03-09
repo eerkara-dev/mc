@@ -8,7 +8,7 @@ import {
   SlidersHorizontal,
   RotateCcw,
   ChevronsUpDown,
-} from "lucide-react";
+} from "./Icons";
 
 type Reservation = {
   timeLeft: string;

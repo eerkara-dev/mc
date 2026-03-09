@@ -13,7 +13,7 @@ import {
   LayoutGrid,
   ChevronRight,
   LogOut,
-} from "lucide-react";
+} from "./Icons";
 
 const navItems = [
   { icon: PanelLeftClose, label: "Dashboard", id: "dashboard" },

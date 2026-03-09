@@ -1,6 +1,11 @@
+import dynamic from "next/dynamic";
 import Sidebar from "@/components/Sidebar";
 import FlightSearch from "@/components/FlightSearch";
-import ReservationsTable from "@/components/ReservationsTable";
+
+const ReservationsTable = dynamic(
+  () => import("@/components/ReservationsTable"),
+  { loading: () => <div className="w-full max-w-[968px] h-[300px]" /> }
+);
 
 export default function Home() {
   return (
