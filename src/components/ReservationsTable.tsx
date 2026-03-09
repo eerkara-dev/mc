@@ -116,10 +116,12 @@ function TimeBadge({
 
   return (
     <div
-      className={`inline-flex items-center gap-1 px-3 ${s.bg} rounded-full border ${s.border} shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]`}
+      className={`inline-flex items-center gap-1 px-3 ${s.bg} rounded-full border ${s.border} shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] self-start`}
     >
-      <Clock size={14} color={s.icon} />
-      <span className={`${s.text} text-xs font-medium leading-[22px] pb-[2px]`}>
+      <Clock size={14} color={s.icon} className="flex-shrink-0" />
+      <span
+        className={`${s.text} text-xs font-medium leading-[22px] pb-[2px] whitespace-nowrap`}
+      >
         {time}
       </span>
     </div>
@@ -127,43 +129,43 @@ function TimeBadge({
 }
 
 function SortIcon() {
-  return <ChevronsUpDown size={14} className="text-[#6B7271]" />;
+  return <ChevronsUpDown size={14} className="text-[#6B7271] flex-shrink-0" />;
 }
 
 function TableHeader() {
   return (
-    <div className="flex items-center justify-between p-3 bg-[#F7F7F7] border-t border-b border-[#EBEBEB]">
-      <div className="flex items-end gap-0 w-[150px] max-w-[150px]">
+    <div className="flex items-center p-3 bg-[#F7F7F7] border-t border-b border-[#EBEBEB]">
+      <div className="flex items-end w-[170px] min-w-[170px]">
         <span className="text-[#6B7271] text-[10px] uppercase leading-[13px]">
           Opsiyon Süresi
         </span>
         <SortIcon />
       </div>
-      <div className="flex items-end gap-0 w-20 min-w-[80px] max-w-[80px]">
+      <div className="flex items-end w-[90px] min-w-[90px]">
         <span className="text-[#6B7271] text-[10px] uppercase leading-[13px]">
           airtuerk PNR
         </span>
         <SortIcon />
       </div>
-      <div className="flex items-end gap-0 flex-1 max-w-[50px]">
+      <div className="flex items-end w-[60px] min-w-[60px]">
         <span className="text-[#6B7271] text-[10px] leading-[13px]">
           HAVAYOLU
         </span>
         <SortIcon />
       </div>
-      <div className="flex items-end gap-0 w-[150px] max-w-[150px]">
+      <div className="flex items-end flex-1 min-w-[140px]">
         <span className="text-[#6B7271] text-[10px] leading-[13px]">
           YOLCULAR
         </span>
         <SortIcon />
       </div>
-      <div className="flex items-end gap-0 w-[100px] min-w-[100px] max-w-[100px]">
+      <div className="flex items-end w-[110px] min-w-[110px]">
         <span className="text-[#6B7271] text-[10px] uppercase leading-[13px]">
           Uçuş
         </span>
         <SortIcon />
       </div>
-      <div className="flex items-end gap-0 flex-1 max-w-[60px]">
+      <div className="flex items-end w-[90px] min-w-[90px]">
         <span className="text-[#6B7271] text-[10px] leading-[13px]">FIYAT</span>
         <SortIcon />
       </div>
@@ -193,18 +195,18 @@ function TableRow({ row }: { row: Reservation }) {
 
   return (
     <div
-      className={`flex items-center justify-between p-3 ${rowBg} border-l ${borderColor}`}
+      className={`flex items-center p-3 ${rowBg} border-l ${borderColor}`}
     >
-      {/* Time */}
-      <div className="flex flex-col gap-[3px] w-[150px] max-w-[150px] min-w-[150px]">
+      {/* Time — wider to fit "Bitiş: Bugün, 12:36" */}
+      <div className="flex flex-col gap-[3px] w-[170px] min-w-[170px]">
         <TimeBadge time={row.timeLeft} urgency={row.urgency} />
-        <span className="text-[#6B7271] text-xs leading-[15.6px]">
+        <span className="text-[#6B7271] text-xs leading-[15.6px] whitespace-nowrap">
           {row.endTime}
         </span>
       </div>
 
       {/* PNR */}
-      <div className="flex flex-col gap-[3px] w-20 min-w-[80px] max-w-[80px]">
+      <div className="flex flex-col gap-[3px] w-[90px] min-w-[90px]">
         <div className="inline-flex self-start px-3 bg-[rgba(34,34,34,0.05)] rounded-full border border-[rgba(34,34,34,0.05)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <span className="text-[#222222] text-xs font-medium leading-[22px] pb-[2px]">
             {row.pnr}
@@ -213,12 +215,12 @@ function TableRow({ row }: { row: Reservation }) {
       </div>
 
       {/* Airline */}
-      <div className="flex-1 max-w-[50px]">
+      <div className="w-[60px] min-w-[60px]">
         <span className="text-[#6B7271] text-xs">{row.airline}</span>
       </div>
 
       {/* Passengers */}
-      <div className="flex flex-col gap-[3px] w-[150px] max-w-[160px] min-w-[150px]">
+      <div className="flex flex-col gap-[3px] flex-1 min-w-[140px]">
         <span className="text-[#242E2C] text-xs">{row.passenger}</span>
         <span className="text-[#6B7271] text-xs leading-[15.6px]">
           {row.paxCount}
@@ -226,7 +228,7 @@ function TableRow({ row }: { row: Reservation }) {
       </div>
 
       {/* Flight */}
-      <div className="flex flex-col gap-[3px] w-[100px] min-w-[100px] max-w-[100px]">
+      <div className="flex flex-col gap-[3px] w-[110px] min-w-[110px]">
         <span className="text-[#222222] text-xs">{row.flightDate}</span>
         <span className="text-[#6B7271] text-xs leading-[15.6px]">
           {row.flightTime}
@@ -234,7 +236,7 @@ function TableRow({ row }: { row: Reservation }) {
       </div>
 
       {/* Price */}
-      <div className="flex items-center gap-[14px] w-[90px] min-w-[90px] max-w-[90px] justify-center">
+      <div className="flex items-center gap-3 w-[90px] min-w-[90px]">
         <div className="flex flex-col gap-[3px]">
           <span className="text-[#5E5E5E] text-xs">{row.price}</span>
           <div className="flex items-center gap-[3px]">
@@ -254,11 +256,11 @@ function TableRow({ row }: { row: Reservation }) {
             </span>
           </div>
         </div>
-        <RotateCcw size={20} className="text-black" />
+        <RotateCcw size={18} className="text-black flex-shrink-0" />
       </div>
 
       {/* Action */}
-      <div className="flex items-center justify-end w-[105px]">
+      <div className="flex items-center justify-end w-[105px] min-w-[105px]">
         <button className="px-[18px] py-[6px] bg-[#222222] rounded-[10px] text-white text-sm font-medium hover:bg-[#333] transition-colors">
           Biletle
         </button>
