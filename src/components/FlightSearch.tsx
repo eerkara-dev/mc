@@ -456,158 +456,294 @@ function formatDateStr(date: Date): string {
   return `${d}.${m}.${y}`;
 }
 
-function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-}
+const dayHeaders = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const monthNames = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
 
-const dayNames = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
-
-/* Mock price data for ±3 days */
+/* Mock price for a given day */
 function getDayPrice(date: Date): number {
-  // Deterministic pseudo-random price based on date
   const seed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
-  return 89 + ((seed * 7 + 13) % 200);
+  return 50 + ((seed * 7 + 13) % 150);
 }
 
-/* ─── Date dropdown (±3 days with prices) ─── */
-function DateDropdown({
+/* Build calendar grid for a month */
+function getMonthGrid(year: number, month: number) {
+  const firstDay = new Date(year, month, 1);
+  const startDow = firstDay.getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: (Date | null)[] = [];
+  for (let i = 0; i < startDow; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+
+function sameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function isBetween(d: Date, start: Date, end: Date) {
+  return d > start && d < end;
+}
+
+/* ─── Flex day chip ─── */
+function FlexChip({
   label,
-  value,
-  onChange,
-  openByDefault,
-  onSelected,
+  active,
+  onClick,
 }: {
   label: string;
-  value: string;
-  onChange: (v: string) => void;
-  openByDefault?: boolean;
-  onSelected?: () => void;
+  active: boolean;
+  onClick: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1 rounded-full border text-xs transition-colors ${
+        active
+          ? "border-[#222] bg-[#222] text-white"
+          : "border-[#DCDCDC] text-[#555] hover:border-[#999]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+/* ─── Dual calendar date picker ─── */
+function DualDatePicker({
+  departDate,
+  returnDate,
+  onChangeDepartDate,
+  onChangeReturnDate,
+  open,
+  onClose,
+  openByDefault,
+}: {
+  departDate: string;
+  returnDate: string;
+  onChangeDepartDate: (v: string) => void;
+  onChangeReturnDate: (v: string) => void;
+  open: boolean;
+  onClose: () => void;
+  openByDefault?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null);
+  const [selecting, setSelecting] = useState<"depart" | "return">("depart");
+  const [departFlex, setDepartFlex] = useState(0);
+  const [returnFlex, setReturnFlex] = useState(0);
+
+  const depart = parseDateStr(departDate);
+  const ret = parseDateStr(returnDate);
+
+  // Left calendar shows depart month, right shows next month
+  const [viewYear, setViewYear] = useState(depart.getFullYear());
+  const [viewMonth, setViewMonth] = useState(depart.getMonth());
+
+  useEffect(() => {
+    if (open || openByDefault) {
+      setSelecting("depart");
+      const d = parseDateStr(departDate);
+      setViewYear(d.getFullYear());
+      setViewMonth(d.getMonth());
+    }
+  }, [open, openByDefault, departDate]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
+        onClose();
       }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
+  }, [onClose]);
 
-  useEffect(() => {
-    if (openByDefault) setOpen(true);
-  }, [openByDefault]);
+  const leftGrid = getMonthGrid(viewYear, viewMonth);
+  const rightMonth = viewMonth === 11 ? 0 : viewMonth + 1;
+  const rightYear = viewMonth === 11 ? viewYear + 1 : viewYear;
+  const rightGrid = getMonthGrid(rightYear, rightMonth);
 
-  const baseDate = parseDateStr(value);
-  const days = [-3, -2, -1, 0, 1, 2, 3].map((offset) => {
-    const d = addDays(baseDate, offset);
-    return { date: d, offset, price: getDayPrice(d) };
-  });
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const minPrice = Math.min(...days.map((d) => d.price));
+  const handleDayClick = (d: Date) => {
+    if (d < today) return;
 
-  const handleDateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const parts = e.target.value.split("-");
-    if (parts.length === 3) {
-      onChange(`${parts[2]}.${parts[1]}.${parts[0]}`);
+    if (selecting === "depart") {
+      onChangeDepartDate(formatDateStr(d));
+      // If new depart is after return, move return too
+      if (d >= ret) {
+        const newRet = new Date(d);
+        newRet.setDate(newRet.getDate() + 1);
+        onChangeReturnDate(formatDateStr(newRet));
+      }
+      setSelecting("return");
+    } else {
+      if (d <= depart) {
+        // If clicked before depart, treat as new depart
+        onChangeDepartDate(formatDateStr(d));
+        setSelecting("return");
+      } else {
+        onChangeReturnDate(formatDateStr(d));
+        onClose();
+      }
     }
   };
 
-  const selectDay = (d: Date) => {
-    onChange(formatDateStr(d));
-    setOpen(false);
-    onSelected?.();
+  const prevMonth = () => {
+    if (viewMonth === 0) {
+      setViewMonth(11);
+      setViewYear(viewYear - 1);
+    } else {
+      setViewMonth(viewMonth - 1);
+    }
   };
 
-  return (
-    <div ref={ref} className="relative">
-      <div
-        className="w-[160px] h-20 p-4 flex items-center gap-[1px] cursor-pointer"
-        onClick={() => setOpen(!open)}
-      >
-        <div className="flex-1 flex flex-col justify-center">
-          <span className="text-[#5E5E5E] text-xs">{label}</span>
-          <span className="text-black text-base font-medium">{value}</span>
+  const nextMonth = () => {
+    if (viewMonth === 11) {
+      setViewMonth(0);
+      setViewYear(viewYear + 1);
+    } else {
+      setViewMonth(viewMonth + 1);
+    }
+  };
+
+  function renderCalendar(grid: (Date | null)[], year: number, month: number) {
+    return (
+      <div className="flex-1">
+        <div className="text-center font-medium text-sm mb-2">
+          {monthNames[month]} {year}
         </div>
-        <ChevronDown
-          size={16}
-          className={`text-[#222222] transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </div>
+        <div className="grid grid-cols-7 gap-0">
+          {dayHeaders.map((dh, i) => (
+            <div
+              key={dh + i}
+              className={`text-center text-[11px] font-medium pb-1 ${
+                i === 0 ? "text-[#D32F2F]" : "text-[#555]"
+              }`}
+            >
+              {dh}
+            </div>
+          ))}
+          {grid.map((cell, i) => {
+            if (!cell) {
+              return <div key={"e" + i} className="h-[52px]" />;
+            }
+            const isPast = cell < today;
+            const isDepart = sameDay(cell, depart);
+            const isReturn = sameDay(cell, ret);
+            const inRange = !sameDay(depart, ret) && isBetween(cell, depart, ret);
+            const isSunday = cell.getDay() === 0;
+            const price = getDayPrice(cell);
 
-      {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-[#EBEBEB] w-[380px] p-4">
-          {/* Date input */}
-          <div className="flex items-center gap-2 mb-3">
-            <label className="text-xs text-[#717171]">{label}:</label>
-            <input
-              type="date"
-              value={value.split(".").reverse().join("-")}
-              onChange={handleDateInput}
-              className="flex-1 px-3 py-1.5 border border-[#EBEBEB] rounded-lg text-sm outline-none focus:border-[#0A82DF] transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
-
-          {/* ±3 days header */}
-          <div className="mb-2">
-            <span className="text-[11px] text-[#999] uppercase font-medium tracking-wide">
-              ± 3 Gün Fiyat Karşılaştırma
-            </span>
-          </div>
-
-          {/* Days grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {days.map((d) => {
-              const isSelected = d.offset === 0;
-              const isCheapest = d.price === minPrice;
-              return (
-                <button
-                  key={d.offset}
-                  onClick={() => selectDay(d.date)}
-                  className={`flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-                    isSelected
-                      ? "bg-[#0A82DF] text-white"
-                      : isCheapest
-                      ? "bg-[#E8F5E9] hover:bg-[#C8E6C9] text-[#222]"
-                      : "hover:bg-[#F5F5F5] text-[#222]"
-                  }`}
-                >
-                  <span className={`text-[10px] ${isSelected ? "text-white/80" : "text-[#999]"}`}>
-                    {dayNames[d.date.getDay()]}
-                  </span>
-                  <span className={`text-sm font-medium ${isSelected ? "" : ""}`}>
-                    {d.date.getDate()}
-                  </span>
+            return (
+              <button
+                key={i}
+                disabled={isPast}
+                onClick={() => handleDayClick(cell)}
+                className={`h-[52px] flex flex-col items-center justify-center text-xs transition-colors relative ${
+                  isPast
+                    ? "text-[#ddd] cursor-default"
+                    : isDepart
+                    ? "bg-[#222] text-white rounded-lg"
+                    : isReturn
+                    ? "bg-[#222] text-white rounded-lg"
+                    : inRange
+                    ? "bg-[#F0F0F0]"
+                    : "hover:bg-[#F5F5F5]"
+                } ${!isPast && !isDepart && !isReturn && isSunday ? "text-[#D32F2F]" : ""}`}
+              >
+                <span className="font-medium leading-tight">{cell.getDate()}</span>
+                {!isPast && (
                   <span
-                    className={`text-[10px] font-medium mt-0.5 ${
-                      isSelected
-                        ? "text-white/90"
-                        : isCheapest
-                        ? "text-[#2E7D32]"
-                        : "text-[#999]"
+                    className={`text-[9px] leading-tight ${
+                      isDepart || isReturn ? "text-white/80" : "text-[#999]"
                     }`}
                   >
-                    {d.price}€
+                    {price} €
                   </span>
-                </button>
-              );
-            })}
-          </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
-          {/* Cheapest hint */}
-          <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-[#F0F0F0]">
-            <div className="w-2 h-2 rounded-full bg-[#4CAF50]" />
-            <span className="text-[10px] text-[#717171]">
-              En uygun fiyat: {minPrice}€
-            </span>
+  if (!open) return null;
+
+  return (
+    <div
+      ref={ref}
+      className="absolute top-full left-0 mt-1 z-50 bg-white rounded-2xl shadow-xl border border-[#EBEBEB] p-5"
+      style={{ width: 680 }}
+    >
+      {/* Header row */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <div className="font-semibold text-sm mb-2">Gidiş Tarihi</div>
+          <div className="flex gap-1.5">
+            {[1, 2, 3].map((n) => (
+              <FlexChip
+                key={n}
+                label={`± ${n} Tag${n > 1 ? "e" : ""}`}
+                active={departFlex === n}
+                onClick={() => setDepartFlex(departFlex === n ? 0 : n)}
+              />
+            ))}
           </div>
         </div>
-      )}
+        <div className="flex-1 text-right">
+          <div className="font-semibold text-sm mb-2">Dönüş Tarihi</div>
+          <div className="flex gap-1.5 justify-end">
+            {[1, 2, 3].map((n) => (
+              <FlexChip
+                key={n}
+                label={`± ${n} Tag${n > 1 ? "e" : ""}`}
+                active={returnFlex === n}
+                onClick={() => setReturnFlex(returnFlex === n ? 0 : n)}
+              />
+            ))}
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="ml-3 mt-0.5 w-7 h-7 flex items-center justify-center rounded-full hover:bg-[#F5F5F5] transition-colors text-[#999]"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Month navigation + calendars */}
+      <div className="flex items-start gap-6">
+        <button onClick={prevMonth} className="mt-1 p-1 hover:bg-[#F5F5F5] rounded transition-colors text-[#999]">
+          <ChevronDown size={16} className="rotate-90" />
+        </button>
+        {renderCalendar(leftGrid, viewYear, viewMonth)}
+        {renderCalendar(rightGrid, rightYear, rightMonth)}
+        <button onClick={nextMonth} className="mt-1 p-1 hover:bg-[#F5F5F5] rounded transition-colors text-[#999]">
+          <ChevronDown size={16} className="-rotate-90" />
+        </button>
+      </div>
+
+      {/* Selection hint */}
+      <div className="mt-3 pt-3 border-t border-[#F0F0F0] flex items-center justify-between text-xs text-[#717171]">
+        <span>
+          {selecting === "depart"
+            ? "Gidiş tarihini seçin"
+            : "Dönüş tarihini seçin"}
+        </span>
+        <span>
+          {departDate} → {returnDate}
+        </span>
+      </div>
     </div>
   );
 }
@@ -720,10 +856,10 @@ function SearchForm({
   returnDate: string;
   setReturnDate: (v: string) => void;
 }) {
-  // Auto-advance flow: origin → destination → departDate → returnDate
+  // Auto-advance flow: origin → destination → date picker
   const [autoOpenDest, setAutoOpenDest] = useState(false);
-  const [autoOpenDepart, setAutoOpenDepart] = useState(false);
-  const [autoOpenReturn, setAutoOpenReturn] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const closeDatePicker = useCallback(() => setDatePickerOpen(false), []);
 
   const swapCities = () => {
     const tmp = origin;
@@ -782,29 +918,50 @@ function SearchForm({
           value={destination}
           onChange={setDestination}
           openByDefault={autoOpenDest}
-          onSelected={() => {
-            setAutoOpenDepart(true);
-            setTimeout(() => setAutoOpenDepart(false), 50);
-          }}
+          onSelected={() => setDatePickerOpen(true)}
         />
 
-        <DateDropdown
-          label="Gidiş Tarihi"
-          value={departDate}
-          onChange={setDepartDate}
-          openByDefault={autoOpenDepart}
-          onSelected={() => {
-            setAutoOpenReturn(true);
-            setTimeout(() => setAutoOpenReturn(false), 50);
-          }}
-        />
+        {/* Date fields — both open the same dual calendar */}
+        <div className="relative">
+          <div className="flex items-center">
+            <div
+              className="w-[160px] h-20 p-4 flex items-center gap-[1px] cursor-pointer"
+              onClick={() => setDatePickerOpen(true)}
+            >
+              <div className="flex-1 flex flex-col justify-center">
+                <span className="text-[#5E5E5E] text-xs">Gidiş Tarihi</span>
+                <span className="text-black text-base font-medium">{departDate}</span>
+              </div>
+              <ChevronDown
+                size={16}
+                className={`text-[#222222] transition-transform ${datePickerOpen ? "rotate-180" : ""}`}
+              />
+            </div>
 
-        <DateDropdown
-          label="Dönüş Tarihi"
-          value={returnDate}
-          onChange={setReturnDate}
-          openByDefault={autoOpenReturn}
-        />
+            <div
+              className="w-[160px] h-20 p-4 flex items-center gap-[1px] cursor-pointer"
+              onClick={() => setDatePickerOpen(true)}
+            >
+              <div className="flex-1 flex flex-col justify-center">
+                <span className="text-[#5E5E5E] text-xs">Dönüş Tarihi</span>
+                <span className="text-black text-base font-medium">{returnDate}</span>
+              </div>
+              <ChevronDown
+                size={16}
+                className={`text-[#222222] transition-transform ${datePickerOpen ? "rotate-180" : ""}`}
+              />
+            </div>
+          </div>
+
+          <DualDatePicker
+            departDate={departDate}
+            returnDate={returnDate}
+            onChangeDepartDate={setDepartDate}
+            onChangeReturnDate={setReturnDate}
+            open={datePickerOpen}
+            onClose={closeDatePicker}
+          />
+        </div>
 
         {/* Search button */}
         <div className="h-20 p-[10px] flex items-center">
