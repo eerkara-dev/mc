@@ -1,82 +1,166 @@
 "use client";
 
 import { useState } from "react";
-import {
-  PanelLeftClose,
-  PanelLeftOpen,
-  PlusCircle,
-  Search,
-  SlidersHorizontal,
-  CalendarDays,
-  Link2,
-  Heart,
-  LayoutGrid,
-  ChevronRight,
-  LogOut,
-} from "./Icons";
+import { Search, PanelLeftClose, PanelLeftOpen } from "./Icons";
 
-const navItems = [
-  { icon: PanelLeftClose, label: "Dashboard", id: "dashboard" },
-  { icon: PlusCircle, label: "Neue Buchung", id: "new" },
-  { icon: Search, label: "Suche", id: "search" },
-  { icon: SlidersHorizontal, label: "Einstellungen", id: "settings-nav" },
-  { icon: CalendarDays, label: "Kalender", id: "calendar" },
-  { icon: Link2, label: "Verbindungen", id: "links" },
-  { icon: Heart, label: "Favoriten", id: "favorites" },
-  { icon: LayoutGrid, label: "Übersicht", id: "overview" },
+/* Inline SVG icons matching the design */
+function SearchIcon(p: { size?: number; className?: string }) {
+  return (
+    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  );
+}
+
+function ListIcon(p: { size?: number; className?: string }) {
+  return (
+    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" />
+      <line x1="3" y1="12" x2="3.01" y2="12" />
+      <line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  );
+}
+
+function UsersIcon(p: { size?: number; className?: string }) {
+  return (
+    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function FileIcon(p: { size?: number; className?: string }) {
+  return (
+    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+    </svg>
+  );
+}
+
+function ChartIcon(p: { size?: number; className?: string }) {
+  return (
+    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9h18" />
+      <path d="M9 21V9" />
+      <path d="M7 15h4" />
+      <path d="M7 12h2" />
+    </svg>
+  );
+}
+
+function BellIcon(p: { size?: number; className?: string }) {
+  return (
+    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </svg>
+  );
+}
+
+function SettingsIcon(p: { size?: number; className?: string }) {
+  return (
+    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function SidebarToggleIcon(p: { size?: number; className?: string }) {
+  return (
+    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M9 3v18" />
+    </svg>
+  );
+}
+
+/* Multicheck logo */
+function MulticheckLogo({ collapsed }: { collapsed: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      {/* Logo mark — 3 diagonal stripes */}
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="flex-shrink-0">
+        <path d="M8 4L14 28" stroke="#1E3A5F" strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M14 4L20 28" stroke="#D32F2F" strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M20 4L26 28" stroke="#1E3A5F" strokeWidth="3.5" strokeLinecap="round" />
+      </svg>
+      {!collapsed && (
+        <span className="text-lg font-semibold text-[#222222] whitespace-nowrap">
+          multicheck
+        </span>
+      )}
+    </div>
+  );
+}
+
+const mainNav = [
+  { icon: SearchIcon, label: "Uçuş Ara", id: "search" },
+  { icon: ListIcon, label: "Rezervasyonlarım", id: "reservations" },
+  { icon: UsersIcon, label: "Yolcularım", id: "passengers" },
+  { icon: FileIcon, label: "Teklifler", id: "offers" },
+  { icon: ChartIcon, label: "Raporlarım", id: "reports" },
+];
+
+const bottomNav = [
+  { icon: BellIcon, label: "Bildirimler", id: "notifications" },
+  { icon: SettingsIcon, label: "Kullanıcı Ayarları", id: "settings" },
 ];
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(true);
-  const [activeItem, setActiveItem] = useState("dashboard");
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [activeItem, setActiveItem] = useState("search");
 
   return (
     <div
-      className={`flex flex-col bg-[#F7F7F7] rounded-tr-2xl rounded-br-2xl transition-all duration-300 ease-in-out min-h-screen relative ${
-        collapsed ? "w-[64px]" : "w-[220px]"
+      className={`flex flex-col bg-white border-r border-[#EBEBEB] transition-all duration-300 ease-in-out h-screen sticky top-0 ${
+        collapsed ? "w-[72px]" : "w-[280px]"
       }`}
     >
-      {/* Toggle button */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center gap-3 px-[22px] py-6 hover:opacity-70 transition-opacity"
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {collapsed ? (
-          <PanelLeftOpen size={20} className="text-black" />
-        ) : (
-          <PanelLeftClose size={20} className="text-black" />
-        )}
-        {!collapsed && (
-          <span className="text-sm font-medium text-[#222222] whitespace-nowrap">
-            Menu
-          </span>
-        )}
-      </button>
+      {/* Header: Logo + toggle */}
+      <div className="flex items-center justify-between px-5 py-5">
+        <MulticheckLogo collapsed={collapsed} />
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="p-1 hover:bg-[#F7F7F7] rounded-lg transition-colors"
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <SidebarToggleIcon size={20} className="text-[#555]" />
+        </button>
+      </div>
 
-      {/* Nav items */}
-      <div className="flex-1 flex flex-col gap-1 px-3">
-        {navItems.map((item) => (
+      {/* Main nav */}
+      <div className="flex-1 flex flex-col gap-1 px-3 pt-4">
+        {mainNav.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveItem(item.id)}
-            className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
+            className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${
               activeItem === item.id
-                ? "bg-[#EBEBEB]"
-                : "hover:bg-[#EBEBEB]/50"
+                ? "bg-[#F5F5F5]"
+                : "hover:bg-[#F9F9F9]"
             } ${collapsed ? "justify-center" : ""}`}
             title={item.label}
           >
             <item.icon
-              size={20}
+              size={22}
               className={
                 activeItem === item.id ? "text-[#222222]" : "text-[#555555]"
               }
             />
             {!collapsed && (
               <span
-                className={`text-sm whitespace-nowrap ${
+                className={`text-[15px] whitespace-nowrap ${
                   activeItem === item.id
                     ? "text-[#222222] font-medium"
                     : "text-[#555555]"
@@ -89,61 +173,39 @@ export default function Sidebar() {
         ))}
       </div>
 
-      {/* Profile area */}
-      <div className="relative px-3 pb-6 pt-2">
-        <div className="h-px bg-[#E2E8F0] mb-4 mx-1" />
-        <button
-          onClick={() => setProfileOpen(!profileOpen)}
-          className={`flex items-center gap-3 w-full p-2 rounded-xl hover:bg-[#EBEBEB]/50 transition-colors ${
-            collapsed ? "justify-center" : ""
-          }`}
-        >
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center text-white text-sm font-medium flex-shrink-0 ring-2 ring-white">
-            AY
-          </div>
-          {!collapsed && (
-            <div className="flex-1 flex items-center justify-between min-w-0">
-              <div className="flex flex-col items-start min-w-0">
-                <span className="text-sm font-medium text-[#222222] truncate max-w-[120px]">
-                  Ahmet Yılmaz
-                </span>
-                <span className="text-[11px] text-[#717171] truncate max-w-[120px]">
-                  ahmet@airtuerk.com
-                </span>
-              </div>
-              <ChevronRight
-                size={14}
-                className={`text-[#717171] transition-transform ${
-                  profileOpen ? "rotate-90" : ""
-                }`}
-              />
-            </div>
-          )}
-        </button>
-
-        {/* Profile dropdown */}
-        {profileOpen && (
-          <div
-            className={`absolute bottom-full mb-2 bg-white rounded-xl shadow-lg border border-[#EBEBEB] py-2 z-50 ${
-              collapsed ? "left-[64px]" : "left-3 right-3"
-            }`}
-            style={collapsed ? { minWidth: 200 } : {}}
+      {/* Bottom nav */}
+      <div className="flex flex-col gap-1 px-3 pb-6 pt-2">
+        <div className="h-px bg-[#EBEBEB] mx-1 mb-3" />
+        {bottomNav.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setActiveItem(item.id)}
+            className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${
+              activeItem === item.id
+                ? "bg-[#F5F5F5]"
+                : "hover:bg-[#F9F9F9]"
+            } ${collapsed ? "justify-center" : ""}`}
+            title={item.label}
           >
-            <div className="px-4 py-2 border-b border-[#EBEBEB]">
-              <p className="text-sm font-medium text-[#222222]">Ahmet Yılmaz</p>
-              <p className="text-xs text-[#717171]">ahmet@airtuerk.com</p>
-              <p className="text-xs text-[#717171] mt-1">Agentur: AirTuerk GmbH</p>
-            </div>
-            <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[#717171] hover:bg-[#F7F7F7] transition-colors">
-              <SlidersHorizontal size={16} />
-              Profil Ayarları
-            </button>
-            <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[#D32F2F] hover:bg-[#FFF5F5] transition-colors">
-              <LogOut size={16} />
-              Çıkış Yap
-            </button>
-          </div>
-        )}
+            <item.icon
+              size={22}
+              className={
+                activeItem === item.id ? "text-[#222222]" : "text-[#555555]"
+              }
+            />
+            {!collapsed && (
+              <span
+                className={`text-[15px] whitespace-nowrap ${
+                  activeItem === item.id
+                    ? "text-[#222222] font-medium"
+                    : "text-[#555555]"
+                }`}
+              >
+                {item.label}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
     </div>
   );
