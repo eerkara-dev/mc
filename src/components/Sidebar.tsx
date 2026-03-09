@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-/* Compact icon-only sidebar icons */
+/* Compact sidebar icons */
 function SidebarToggleIcon({ className }: { className?: string }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -81,7 +81,6 @@ function GridIcon({ className }: { className?: string }) {
 }
 
 const navItems = [
-  { icon: SidebarToggleIcon, id: "toggle", label: "Menu" },
   { icon: PlusCircleIcon, id: "new", label: "Neue Buchung" },
   { icon: SearchIcon, id: "search", label: "Suche" },
   { icon: SettingsIcon, id: "settings", label: "Einstellungen" },
@@ -92,17 +91,35 @@ const navItems = [
 ];
 
 export default function Sidebar() {
-  const [activeItem, setActiveItem] = useState("toggle");
+  const [collapsed, setCollapsed] = useState(true);
+  const [activeItem, setActiveItem] = useState("search");
 
   return (
-    <div className="flex flex-col items-center w-[52px] min-w-[52px] bg-[#F7F7F7] h-screen sticky top-0 py-4">
+    <div
+      className={`flex flex-col bg-[#F7F7F7] h-screen sticky top-0 transition-all duration-200 ease-in-out ${
+        collapsed ? "w-[52px] min-w-[52px] items-center" : "w-[200px] min-w-[200px]"
+      }`}
+    >
+      {/* Toggle */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors mt-4 hover:bg-[#EBEBEB] ${
+          collapsed ? "" : "ml-[10px]"
+        }`}
+        title={collapsed ? "Expand" : "Collapse"}
+      >
+        <SidebarToggleIcon className="text-[#222]" />
+      </button>
+
       {/* Nav icons */}
-      <div className="flex flex-col items-center gap-[2px]">
+      <div className={`flex flex-col gap-[2px] mt-1 ${collapsed ? "items-center" : "px-[10px]"}`}>
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveItem(item.id)}
-            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
+            className={`flex items-center gap-2 rounded-lg transition-colors ${
+              collapsed ? "w-9 h-9 justify-center" : "w-full h-9 px-2"
+            } ${
               activeItem === item.id
                 ? "bg-[#E5E5E5] text-[#222]"
                 : "text-[#888] hover:text-[#555] hover:bg-[#EBEBEB]"
@@ -110,6 +127,13 @@ export default function Sidebar() {
             title={item.label}
           >
             <item.icon className={activeItem === item.id ? "text-[#222]" : "text-[#888]"} />
+            {!collapsed && (
+              <span className={`text-[13px] whitespace-nowrap ${
+                activeItem === item.id ? "text-[#222] font-medium" : "text-[#555]"
+              }`}>
+                {item.label}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -118,8 +142,10 @@ export default function Sidebar() {
       <div className="flex-1" />
 
       {/* Profile avatar */}
-      <div className="pb-2">
-        <button className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-sm">
+      <div className={`pb-4 ${collapsed ? "flex justify-center" : "px-[10px]"}`}>
+        <button className={`rounded-full overflow-hidden ring-2 ring-white shadow-sm ${
+          collapsed ? "w-9 h-9" : "w-9 h-9"
+        }`}>
           <div className="w-full h-full bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center text-white text-xs font-medium">
             AY
           </div>
