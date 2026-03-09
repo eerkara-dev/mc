@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plane,
   ArrowLeftRight,
@@ -857,6 +858,7 @@ function SearchForm({
   setReturnDate: (v: string) => void;
 }) {
   // Auto-advance flow: origin → destination → date picker
+  const router = useRouter();
   const [autoOpenDest, setAutoOpenDest] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const closeDatePicker = useCallback(() => setDatePickerOpen(false), []);
@@ -965,7 +967,10 @@ function SearchForm({
 
         {/* Search button */}
         <div className="h-20 p-[10px] flex items-center">
-          <button className="w-[68px] h-[68px] bg-[#0A82DF] rounded-2xl flex items-center justify-center hover:bg-[#0971c4] transition-colors">
+          <button
+            onClick={() => router.push("/results")}
+            className="w-[68px] h-[68px] bg-[#0A82DF] rounded-2xl flex items-center justify-center hover:bg-[#0971c4] transition-colors"
+          >
             <Search size={25} className="text-white" />
           </button>
         </div>
