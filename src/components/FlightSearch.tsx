@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Plane,
   ArrowLeftRight,
@@ -225,150 +225,310 @@ function PaxDropdown({
   );
 }
 
-/* ─── Airport dropdown ─── */
-const airports = [
+/* ─── Airport data ─── */
+const favoriteAirports = [
   { code: "IST", name: "Istanbul", full: "Istanbul Havalimanı" },
+  { code: "MUC", name: "München", full: "Franz Josef Strauß" },
+  { code: "FRA", name: "Frankfurt", full: "Frankfurt am Main" },
+];
+
+const airports = [
+  ...favoriteAirports,
   { code: "SAW", name: "Sabiha Gökçen", full: "Sabiha Gökçen Havalimanı" },
   { code: "AYT", name: "Antalya", full: "Antalya Havalimanı" },
   { code: "ESB", name: "Ankara", full: "Esenboğa Havalimanı" },
   { code: "ADB", name: "İzmir", full: "Adnan Menderes Havalimanı" },
-  { code: "MUC", name: "München", full: "Franz Josef Strauß" },
-  { code: "FRA", name: "Frankfurt", full: "Frankfurt am Main" },
   { code: "BER", name: "Berlin", full: "Berlin Brandenburg" },
   { code: "LON", name: "London", full: "London Heathrow" },
   { code: "PAR", name: "Paris", full: "Charles de Gaulle" },
 ];
 
+/* ─── Airport dropdown (typeable, with favorites) ─── */
 function AirportDropdown({
   label,
   value,
   onChange,
+  openByDefault,
+  onSelected,
 }: {
   label: string;
   value: string;
   onChange: (code: string) => void;
+  openByDefault?: boolean;
+  onSelected?: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(openByDefault || false);
   const [search, setSearch] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const filtered = airports.filter(
-    (a) =>
-      a.code.toLowerCase().includes(search.toLowerCase()) ||
-      a.name.toLowerCase().includes(search.toLowerCase()) ||
-      a.full.toLowerCase().includes(search.toLowerCase())
-  );
+  // Close on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        if (open) {
+          setOpen(false);
+          setSearch("");
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
 
-  const display = value
-    ? airports.find((a) => a.code === value)?.name ?? value
-    : "Origin";
+  // Focus input when opened
+  useEffect(() => {
+    if (open && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [open]);
+
+  // Respond to openByDefault changes
+  useEffect(() => {
+    if (openByDefault) {
+      setOpen(true);
+      setSearch("");
+    }
+  }, [openByDefault]);
+
+  const selected = airports.find((a) => a.code === value);
+  const displayName = selected?.name ?? "";
+
+  const filtered = search
+    ? airports.filter(
+        (a) =>
+          a.code.toLowerCase().includes(search.toLowerCase()) ||
+          a.name.toLowerCase().includes(search.toLowerCase()) ||
+          a.full.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
+
+  const handleSelect = (code: string) => {
+    onChange(code);
+    setOpen(false);
+    setSearch("");
+    onSelected?.();
+  };
 
   return (
-    <Dropdown
-      open={open}
-      onToggle={() => {
-        setOpen(!open);
-        setSearch("");
-      }}
-      overlay={
-        <div className="py-2 w-[280px]">
-          <div className="px-3 pb-2">
-            <div className="flex items-center gap-2 px-3 py-2 bg-[#F7F7F7] rounded-lg">
-              <Search size={14} className="text-[#717171]" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Havalimanı ara..."
-                className="bg-transparent text-sm outline-none flex-1 placeholder:text-[#717171]"
-                autoFocus
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          </div>
-          <div className="max-h-[240px] overflow-y-auto">
-            {filtered.map((a) => (
-              <button
-                key={a.code}
-                onClick={() => {
-                  onChange(a.code);
-                  setOpen(false);
-                  setSearch("");
-                }}
-                className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-[#F7F7F7] transition-colors"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="text-xs text-[#0A82DF] font-medium w-8">
-                    {a.code}
-                  </span>
-                  <span className="flex flex-col items-start">
-                    <span className={value === a.code ? "font-medium" : ""}>
-                      {a.name}
-                    </span>
-                    <span className="text-[11px] text-[#717171]">{a.full}</span>
-                  </span>
-                </span>
-                {value === a.code && (
-                  <Check size={14} className="text-[#0A82DF]" />
-                )}
-              </button>
-            ))}
-            {filtered.length === 0 && (
-              <p className="px-4 py-3 text-sm text-[#717171]">
-                Sonuç bulunamadı
-              </p>
-            )}
-          </div>
-        </div>
-      }
-    >
-      <div className="w-[260px] h-20 px-6 py-4 flex items-center gap-[2px]">
+    <div ref={ref} className="relative">
+      <div
+        className="w-[260px] h-20 px-6 py-4 flex items-center gap-[2px] cursor-pointer"
+        onClick={() => {
+          setOpen(true);
+          setSearch("");
+        }}
+      >
         <div className="flex-1 flex flex-col justify-center">
           <span className="text-[#5E5E5E] text-xs">{label}</span>
-          <span className="text-black text-base font-medium">{display}</span>
+          {open ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={displayName || "Şehir veya havalimanı yazın..."}
+              className="text-black text-base font-medium outline-none bg-transparent placeholder:text-[#BCBCBC] w-full"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <span className="text-black text-base font-medium">
+              {displayName || <span className="text-[#BCBCBC]">Şehir seçin</span>}
+            </span>
+          )}
         </div>
         <ChevronDown
           size={16}
           className={`text-[#222222] transition-transform ${open ? "rotate-180" : ""}`}
         />
       </div>
-    </Dropdown>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-[#EBEBEB] w-[320px]">
+          {/* Show favorites when no search, or filtered results when searching */}
+          {!search ? (
+            <div className="py-2">
+              <div className="px-4 py-1">
+                <span className="text-[10px] uppercase text-[#999] font-medium tracking-wide">
+                  Favoriler
+                </span>
+              </div>
+              {favoriteAirports.map((a) => (
+                <button
+                  key={a.code}
+                  onClick={() => handleSelect(a.code)}
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-[#F7F7F7] transition-colors"
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="text-xs text-[#0A82DF] font-medium w-8">
+                      {a.code}
+                    </span>
+                    <span className="flex flex-col items-start">
+                      <span className={value === a.code ? "font-medium" : ""}>
+                        {a.name}
+                      </span>
+                      <span className="text-[11px] text-[#717171]">{a.full}</span>
+                    </span>
+                  </span>
+                  {value === a.code && (
+                    <Check size={14} className="text-[#0A82DF]" />
+                  )}
+                </button>
+              ))}
+              <div className="h-px bg-[#EBEBEB] mx-3 my-1" />
+              <div className="px-4 py-1">
+                <span className="text-[10px] uppercase text-[#999] font-medium tracking-wide">
+                  Tüm Havalimanları
+                </span>
+              </div>
+              <div className="max-h-[200px] overflow-y-auto">
+                {airports.map((a) => (
+                  <button
+                    key={a.code}
+                    onClick={() => handleSelect(a.code)}
+                    className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-[#F7F7F7] transition-colors"
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="text-xs text-[#0A82DF] font-medium w-8">
+                        {a.code}
+                      </span>
+                      <span className="flex flex-col items-start">
+                        <span className={value === a.code ? "font-medium" : ""}>
+                          {a.name}
+                        </span>
+                        <span className="text-[11px] text-[#717171]">{a.full}</span>
+                      </span>
+                    </span>
+                    {value === a.code && (
+                      <Check size={14} className="text-[#0A82DF]" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="py-2 max-h-[300px] overflow-y-auto">
+              {filtered.map((a) => (
+                <button
+                  key={a.code}
+                  onClick={() => handleSelect(a.code)}
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-[#F7F7F7] transition-colors"
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="text-xs text-[#0A82DF] font-medium w-8">
+                      {a.code}
+                    </span>
+                    <span className="flex flex-col items-start">
+                      <span className={value === a.code ? "font-medium" : ""}>
+                        {a.name}
+                      </span>
+                      <span className="text-[11px] text-[#717171]">{a.full}</span>
+                    </span>
+                  </span>
+                  {value === a.code && (
+                    <Check size={14} className="text-[#0A82DF]" />
+                  )}
+                </button>
+              ))}
+              {filtered.length === 0 && (
+                <p className="px-4 py-3 text-sm text-[#717171]">
+                  Sonuç bulunamadı
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
-/* ─── Date dropdown ─── */
+/* ─── Date helpers ─── */
+function parseDateStr(str: string): Date {
+  const [d, m, y] = str.split(".");
+  return new Date(Number(y), Number(m) - 1, Number(d));
+}
+
+function formatDateStr(date: Date): string {
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+  return `${d}.${m}.${y}`;
+}
+
+function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+const dayNames = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
+
+/* Mock price data for ±3 days */
+function getDayPrice(date: Date): number {
+  // Deterministic pseudo-random price based on date
+  const seed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+  return 89 + ((seed * 7 + 13) % 200);
+}
+
+/* ─── Date dropdown (±3 days with prices) ─── */
 function DateDropdown({
   label,
   value,
   onChange,
+  openByDefault,
+  onSelected,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  openByDefault?: boolean;
+  onSelected?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  useEffect(() => {
+    if (openByDefault) setOpen(true);
+  }, [openByDefault]);
+
+  const baseDate = parseDateStr(value);
+  const days = [-3, -2, -1, 0, 1, 2, 3].map((offset) => {
+    const d = addDays(baseDate, offset);
+    return { date: d, offset, price: getDayPrice(d) };
+  });
+
+  const minPrice = Math.min(...days.map((d) => d.price));
+
+  const handleDateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const parts = e.target.value.split("-");
+    if (parts.length === 3) {
+      onChange(`${parts[2]}.${parts[1]}.${parts[0]}`);
+    }
+  };
+
+  const selectDay = (d: Date) => {
+    onChange(formatDateStr(d));
+    setOpen(false);
+    onSelected?.();
+  };
 
   return (
-    <Dropdown
-      open={open}
-      onToggle={() => setOpen(!open)}
-      overlay={
-        <div className="p-4 w-[250px]">
-          <label className="block text-xs text-[#717171] mb-2">{label}</label>
-          <input
-            type="date"
-            value={value.split(".").reverse().join("-")}
-            onChange={(e) => {
-              const parts = e.target.value.split("-");
-              onChange(`${parts[2]}.${parts[1]}.${parts[0]}`);
-              setOpen(false);
-            }}
-            className="w-full px-3 py-2 border border-[#EBEBEB] rounded-lg text-sm outline-none focus:border-[#0A82DF] transition-colors"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      }
-    >
-      <div className="w-[160px] h-20 p-4 flex items-center gap-[1px]">
+    <div ref={ref} className="relative">
+      <div
+        className="w-[160px] h-20 p-4 flex items-center gap-[1px] cursor-pointer"
+        onClick={() => setOpen(!open)}
+      >
         <div className="flex-1 flex flex-col justify-center">
           <span className="text-[#5E5E5E] text-xs">{label}</span>
           <span className="text-black text-base font-medium">{value}</span>
@@ -378,7 +538,77 @@ function DateDropdown({
           className={`text-[#222222] transition-transform ${open ? "rotate-180" : ""}`}
         />
       </div>
-    </Dropdown>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-[#EBEBEB] w-[380px] p-4">
+          {/* Date input */}
+          <div className="flex items-center gap-2 mb-3">
+            <label className="text-xs text-[#717171]">{label}:</label>
+            <input
+              type="date"
+              value={value.split(".").reverse().join("-")}
+              onChange={handleDateInput}
+              className="flex-1 px-3 py-1.5 border border-[#EBEBEB] rounded-lg text-sm outline-none focus:border-[#0A82DF] transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+
+          {/* ±3 days header */}
+          <div className="mb-2">
+            <span className="text-[11px] text-[#999] uppercase font-medium tracking-wide">
+              ± 3 Gün Fiyat Karşılaştırma
+            </span>
+          </div>
+
+          {/* Days grid */}
+          <div className="grid grid-cols-7 gap-1">
+            {days.map((d) => {
+              const isSelected = d.offset === 0;
+              const isCheapest = d.price === minPrice;
+              return (
+                <button
+                  key={d.offset}
+                  onClick={() => selectDay(d.date)}
+                  className={`flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
+                    isSelected
+                      ? "bg-[#0A82DF] text-white"
+                      : isCheapest
+                      ? "bg-[#E8F5E9] hover:bg-[#C8E6C9] text-[#222]"
+                      : "hover:bg-[#F5F5F5] text-[#222]"
+                  }`}
+                >
+                  <span className={`text-[10px] ${isSelected ? "text-white/80" : "text-[#999]"}`}>
+                    {dayNames[d.date.getDay()]}
+                  </span>
+                  <span className={`text-sm font-medium ${isSelected ? "" : ""}`}>
+                    {d.date.getDate()}
+                  </span>
+                  <span
+                    className={`text-[10px] font-medium mt-0.5 ${
+                      isSelected
+                        ? "text-white/90"
+                        : isCheapest
+                        ? "text-[#2E7D32]"
+                        : "text-[#999]"
+                    }`}
+                  >
+                    {d.price}€
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Cheapest hint */}
+          <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-[#F0F0F0]">
+            <div className="w-2 h-2 rounded-full bg-[#4CAF50]" />
+            <span className="text-[10px] text-[#717171]">
+              En uygun fiyat: {minPrice}€
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -490,6 +720,11 @@ function SearchForm({
   returnDate: string;
   setReturnDate: (v: string) => void;
 }) {
+  // Auto-advance flow: origin → destination → departDate → returnDate
+  const [autoOpenDest, setAutoOpenDest] = useState(false);
+  const [autoOpenDepart, setAutoOpenDepart] = useState(false);
+  const [autoOpenReturn, setAutoOpenReturn] = useState(false);
+
   const swapCities = () => {
     const tmp = origin;
     setOrigin(destination);
@@ -524,7 +759,15 @@ function SearchForm({
 
       {/* Search fields row */}
       <div className="flex items-center">
-        <AirportDropdown label="Nereden" value={origin} onChange={setOrigin} />
+        <AirportDropdown
+          label="Nereden"
+          value={origin}
+          onChange={setOrigin}
+          onSelected={() => {
+            setAutoOpenDest(true);
+            setTimeout(() => setAutoOpenDest(false), 50);
+          }}
+        />
 
         {/* Swap button */}
         <button
@@ -538,18 +781,29 @@ function SearchForm({
           label="Nereye"
           value={destination}
           onChange={setDestination}
+          openByDefault={autoOpenDest}
+          onSelected={() => {
+            setAutoOpenDepart(true);
+            setTimeout(() => setAutoOpenDepart(false), 50);
+          }}
         />
 
         <DateDropdown
           label="Gidiş Tarihi"
           value={departDate}
           onChange={setDepartDate}
+          openByDefault={autoOpenDepart}
+          onSelected={() => {
+            setAutoOpenReturn(true);
+            setTimeout(() => setAutoOpenReturn(false), 50);
+          }}
         />
 
         <DateDropdown
           label="Dönüş Tarihi"
           value={returnDate}
           onChange={setReturnDate}
+          openByDefault={autoOpenReturn}
         />
 
         {/* Search button */}
