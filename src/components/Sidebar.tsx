@@ -1,211 +1,129 @@
 "use client";
 
 import { useState } from "react";
-import { Search, PanelLeftClose, PanelLeftOpen } from "./Icons";
 
-/* Inline SVG icons matching the design */
-function SearchIcon(p: { size?: number; className?: string }) {
+/* Compact icon-only sidebar icons */
+function SidebarToggleIcon({ className }: { className?: string }) {
   return (
-    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  );
-}
-
-function ListIcon(p: { size?: number; className?: string }) {
-  return (
-    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
-      <line x1="8" y1="6" x2="21" y2="6" />
-      <line x1="8" y1="12" x2="21" y2="12" />
-      <line x1="8" y1="18" x2="21" y2="18" />
-      <line x1="3" y1="6" x2="3.01" y2="6" />
-      <line x1="3" y1="12" x2="3.01" y2="12" />
-      <line x1="3" y1="18" x2="3.01" y2="18" />
-    </svg>
-  );
-}
-
-function UsersIcon(p: { size?: number; className?: string }) {
-  return (
-    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-
-function FileIcon(p: { size?: number; className?: string }) {
-  return (
-    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
-      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-    </svg>
-  );
-}
-
-function ChartIcon(p: { size?: number; className?: string }) {
-  return (
-    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <path d="M3 9h18" />
-      <path d="M9 21V9" />
-      <path d="M7 15h4" />
-      <path d="M7 12h2" />
-    </svg>
-  );
-}
-
-function BellIcon(p: { size?: number; className?: string }) {
-  return (
-    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
-  );
-}
-
-function SettingsIcon(p: { size?: number; className?: string }) {
-  return (
-    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
-      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-function SidebarToggleIcon(p: { size?: number; className?: string }) {
-  return (
-    <svg width={p.size || 24} height={p.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={p.className}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
       <rect x="3" y="3" width="18" height="18" rx="2" />
       <path d="M9 3v18" />
     </svg>
   );
 }
 
-/* Multicheck logo */
-function MulticheckLogo({ collapsed }: { collapsed: boolean }) {
+function PlusCircleIcon({ className }: { className?: string }) {
   return (
-    <div className="flex items-center gap-3">
-      {/* Logo mark — 3 diagonal stripes */}
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="flex-shrink-0">
-        <path d="M8 4L14 28" stroke="#1E3A5F" strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M14 4L20 28" stroke="#D32F2F" strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M20 4L26 28" stroke="#1E3A5F" strokeWidth="3.5" strokeLinecap="round" />
-      </svg>
-      {!collapsed && (
-        <span className="text-lg font-semibold text-[#222222] whitespace-nowrap">
-          multicheck
-        </span>
-      )}
-    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M8 12h8" />
+      <path d="M12 8v8" />
+    </svg>
   );
 }
 
-const mainNav = [
-  { icon: SearchIcon, label: "Uçuş Ara", id: "search" },
-  { icon: ListIcon, label: "Rezervasyonlarım", id: "reservations" },
-  { icon: UsersIcon, label: "Yolcularım", id: "passengers" },
-  { icon: FileIcon, label: "Teklifler", id: "offers" },
-  { icon: ChartIcon, label: "Raporlarım", id: "reports" },
-];
+function SearchIcon({ className }: { className?: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  );
+}
 
-const bottomNav = [
-  { icon: BellIcon, label: "Bildirimler", id: "notifications" },
-  { icon: SettingsIcon, label: "Kullanıcı Ayarları", id: "settings" },
+function SettingsIcon({ className }: { className?: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function CalendarIcon({ className }: { className?: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M3 10h18" />
+    </svg>
+  );
+}
+
+function LinkIcon({ className }: { className?: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M9 17H7A5 5 0 0 1 7 7h2" />
+      <path d="M15 7h2a5 5 0 1 1 0 10h-2" />
+      <path d="M8 12h8" />
+    </svg>
+  );
+}
+
+function HeartIcon({ className }: { className?: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+    </svg>
+  );
+}
+
+function GridIcon({ className }: { className?: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+    </svg>
+  );
+}
+
+const navItems = [
+  { icon: SidebarToggleIcon, id: "toggle", label: "Menu" },
+  { icon: PlusCircleIcon, id: "new", label: "Neue Buchung" },
+  { icon: SearchIcon, id: "search", label: "Suche" },
+  { icon: SettingsIcon, id: "settings", label: "Einstellungen" },
+  { icon: CalendarIcon, id: "calendar", label: "Kalender" },
+  { icon: LinkIcon, id: "links", label: "Verbindungen" },
+  { icon: HeartIcon, id: "favorites", label: "Favoriten" },
+  { icon: GridIcon, id: "overview", label: "Übersicht" },
 ];
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [activeItem, setActiveItem] = useState("search");
+  const [activeItem, setActiveItem] = useState("toggle");
 
   return (
-    <div
-      className={`flex flex-col bg-white border-r border-[#EBEBEB] transition-all duration-300 ease-in-out h-screen sticky top-0 ${
-        collapsed ? "w-[72px]" : "w-[280px]"
-      }`}
-    >
-      {/* Header: Logo + toggle */}
-      <div className="flex items-center justify-between px-5 py-5">
-        <MulticheckLogo collapsed={collapsed} />
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-1 hover:bg-[#F7F7F7] rounded-lg transition-colors"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          <SidebarToggleIcon size={20} className="text-[#555]" />
+    <div className="flex flex-col items-center w-[52px] min-w-[52px] bg-[#F7F7F7] h-screen sticky top-0 py-4">
+      {/* Nav icons */}
+      <div className="flex flex-col items-center gap-[2px]">
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setActiveItem(item.id)}
+            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
+              activeItem === item.id
+                ? "bg-[#E5E5E5] text-[#222]"
+                : "text-[#888] hover:text-[#555] hover:bg-[#EBEBEB]"
+            }`}
+            title={item.label}
+          >
+            <item.icon className={activeItem === item.id ? "text-[#222]" : "text-[#888]"} />
+          </button>
+        ))}
+      </div>
+
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Profile avatar */}
+      <div className="pb-2">
+        <button className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-sm">
+          <div className="w-full h-full bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center text-white text-xs font-medium">
+            AY
+          </div>
         </button>
-      </div>
-
-      {/* Main nav */}
-      <div className="flex-1 flex flex-col gap-1 px-3 pt-4">
-        {mainNav.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveItem(item.id)}
-            className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${
-              activeItem === item.id
-                ? "bg-[#F5F5F5]"
-                : "hover:bg-[#F9F9F9]"
-            } ${collapsed ? "justify-center" : ""}`}
-            title={item.label}
-          >
-            <item.icon
-              size={22}
-              className={
-                activeItem === item.id ? "text-[#222222]" : "text-[#555555]"
-              }
-            />
-            {!collapsed && (
-              <span
-                className={`text-[15px] whitespace-nowrap ${
-                  activeItem === item.id
-                    ? "text-[#222222] font-medium"
-                    : "text-[#555555]"
-                }`}
-              >
-                {item.label}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Bottom nav */}
-      <div className="flex flex-col gap-1 px-3 pb-6 pt-2">
-        <div className="h-px bg-[#EBEBEB] mx-1 mb-3" />
-        {bottomNav.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveItem(item.id)}
-            className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${
-              activeItem === item.id
-                ? "bg-[#F5F5F5]"
-                : "hover:bg-[#F9F9F9]"
-            } ${collapsed ? "justify-center" : ""}`}
-            title={item.label}
-          >
-            <item.icon
-              size={22}
-              className={
-                activeItem === item.id ? "text-[#222222]" : "text-[#555555]"
-              }
-            />
-            {!collapsed && (
-              <span
-                className={`text-[15px] whitespace-nowrap ${
-                  activeItem === item.id
-                    ? "text-[#222222] font-medium"
-                    : "text-[#555555]"
-                }`}
-              >
-                {item.label}
-              </span>
-            )}
-          </button>
-        ))}
       </div>
     </div>
   );
